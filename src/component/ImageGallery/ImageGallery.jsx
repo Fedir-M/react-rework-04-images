@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { Component, createRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import ImageGalleryItem from "./../ImageGalleryItem/ImageGalleryItem";
 import Button from "./../UI/Button/Button";
 import Modal from "./../Modal/Modal";
@@ -9,129 +9,115 @@ import { fetchImages } from "../../services/imagesApi";
 import s from "./ImageGallery.module.css";
 import NotFound from "../Not found/NotFound";
 
-export default class ImageGallery extends Component {
-  state = {
-    images: [],
-    page: 1,
-    largeImage: "",
-    isOpenModal: false,
-    isLoading: false,
-    error: "",
-  };
+export const ImageGallery = ({ imageQuery }) => {
+  const [images, setImages] = useState([]);
+  const [page, setPage] = useState(1);
+  const [largeImage, setLargeImage] = useState("");
+  const [isOpenModal, setIsOpenModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const itemRef = useRef(null);
 
-  itemRef = createRef(null);
-
-  static getDerivedStateFromProps(currentProps, prevState) {
-    if (prevState.query !== currentProps.query) {
-      return { query: currentProps.query, page: 1 };
+  useEffect(() => {
+    if (imageQuery) {
+      setImages([]);
+      setPage(1);
+      getImages(imageQuery);
     }
-    return null;
-  }
+  }, [imageQuery, getImages]);
 
-  componentDidUpdate(prevProps, prevState) {
-    const { imageQuery } = this.props;
-    const { page, images } = this.state;
-    //* записал изначально в строку 18 и сидел час ебался
+  useEffect(() => {
+    if (page > 1) {
+      getImages(imageQuery);
+    }
+  }, [page, imageQuery, getImages]);
 
-    if (prevProps.imageQuery !== imageQuery && imageQuery !== "") {
-      this.setState({ images: [], page: 1 }, () => {
-        this.getImages(imageQuery);
-      });
-    }
-    if (prevState.page !== page) {
-      this.getImages(imageQuery);
-    }
-    if (prevState.images !== images) {
-      this.itemRef.current?.scrollIntoView({
+  useEffect(() => {
+    if (images.length > 12) {
+      itemRef.current?.scrollIntoView({
         behavior: "smooth",
         block: "start",
       });
     }
-  }
+  }, [images]);
 
-  getImages(query) {
-    const { page } = this.state;
+  const getImages = useCallback(
+    (query) => {
+      setIsLoading(true);
+      setError("");
 
-    this.setState({ isLoading: true, error: "", query });
+      fetchImages(query, page)
+        .then((images) => {
+          if (images.length === 0) {
+            setError("No images found");
+          } else {
+            setImages((prev) => [...prev, ...images]);
+          }
+        })
+        .catch((error) => {
+          setError(error.message);
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+    },
+    [page]
+  );
 
-    fetchImages(query, page)
-      .then((images) => {
-        if (images.length === 0) {
-          this.setState({ error: "No images found" });
-          // console.log("No images found");
-        } else {
-          this.setState((prev) => ({ images: [...prev.images, ...images] }));
-        }
-      })
-      .catch((error) => {
-        this.setState({ error: error.message });
-        //! throw new Error(error); // запутался...в чем разницы ?)
-      })
-      .finally(() => {
-        this.setState({ isLoading: false });
-      });
-  }
-
-  onLoadMore = () => {
-    this.setState((prev) => ({
-      page: prev.page + 1,
-    }));
+  const onLoadMore = () => {
+    setPage((prev) => prev + 1);
   };
 
-  openModal = () => {
-    this.setState({ isOpenModal: true });
+  const openModal = () => {
+    setIsOpenModal(true);
   };
 
-  getModalImage = (largeImageURL) => {
-    this.setState({ largeImage: largeImageURL });
+  const getModalImage = (largeImageURL) => {
+    setLargeImage(largeImageURL);
   };
 
-  closeModal = () => {
-    this.setState({ isOpenModal: false, largeImage: "" });
+  const closeModal = () => {
+    setIsOpenModal(false);
+    setLargeImage("");
   };
 
-  render() {
-    // console.log(this.props.imageQuery); //напоминалка как правильно в классе вызывать консоль
-    const { isLoading, images, isOpenModal, largeImage, error } = this.state;
-    const { imageQuery } = this.props;
-    return (
-      <div className={s.container}>
-        {isLoading && (
-          <ProgressBar
-            visible={true}
-            height="80"
-            width="150"
-            ariaLabel="progress-bar-loading"
-            barColor="#dae962"
-            borderColor="#125a1f"
-            className={s.loader}
-            wrapperClass={s.customProgressBar}
+  return (
+    <div className={s.container}>
+      {isLoading && (
+        <ProgressBar
+          visible={true}
+          height="80"
+          width="150"
+          ariaLabel="progress-bar-loading"
+          barColor="#dae962"
+          borderColor="#125a1f"
+          className={s.loader}
+          wrapperClass={s.customProgressBar}
+        />
+      )}
+      {isOpenModal && (
+        <Modal largeImage={largeImage} onCloseModal={closeModal} />
+      )}
+      {error ? (
+        <NotFound error={error} query={imageQuery} />
+      ) : (
+        <ul className={s.wrapperGallery}>
+          <ImageGalleryItem
+            itemRef={itemRef}
+            images={images}
+            openModal={openModal}
+            getModalImage={getModalImage}
           />
-        )}
-        {isOpenModal && (
-          <Modal largeImage={largeImage} onCloseModal={this.closeModal} />
-        )}
-        {error ? (
-          <NotFound error={error} query={imageQuery} />
-        ) : (
-          <ul className={s.wrapperGallery}>
-            <ImageGalleryItem
-              itemRef={this.itemRef}
-              images={this.state.images}
-              openModal={this.openModal}
-              getModalImage={this.getModalImage}
-            />
-          </ul>
-        )}
-        {!isLoading && images.length > 0 && (
-          <Button
-            onClick={this.onLoadMore} // на пропс онКлик (кот. мы определили внутри самого компонента) передается метод смены страницы
-            label="Load more..."
-            type="button"
-            className={s.loadMoreButton}
-          />
-        )}
-      </div>
-    );
-  }
-}
+        </ul>
+      )}
+      {!isLoading && images.length > 0 && (
+        <Button
+          onClick={onLoadMore} // на пропс онКлик (кот. мы определили внутри самого компонента) передается метод смены страницы
+          label="Load more..."
+          type="button"
+          className={s.loadMoreButton}
+        />
+      )}
+    </div>
+  );
+};

@@ -1,31 +1,21 @@
-import { Component } from "react";
 import "./App.css";
 import Searchbar from "./component/Searchbar/Searchbar";
 import ImageGallery from "./component/ImageGallery/ImageGallery";
+import { useState } from "react";
 
-export class App extends Component {
-  state = {
-    query: "",
-    buttonType: "submit",
+export const App = () => {
+  const [query, setQuery] = useState("");
+  const buttonType = "submit";
+
+  const changeQuery = (input) => {
+    setQuery(input);
   };
 
-  changeQuery = (input) => {
-    this.setState({ query: input });
-  };
+  return (
+    <div className="">
+      <Searchbar changeQuery={changeQuery} buttonType={buttonType} />
 
-  render() {
-    return (
-      <div className="">
-        <Searchbar
-          changeQuery={this.changeQuery}
-          buttonType={this.state.buttonType}
-        />
-
-        <ImageGallery
-          imageQuery={this.state.query}
-          buttonType={this.state.buttonType}
-        />
-      </div>
-    );
-  }
-}
+      <ImageGallery imageQuery={query} buttonType={buttonType} />
+    </div>
+  );
+};
