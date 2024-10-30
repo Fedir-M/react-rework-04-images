@@ -121,3 +121,5 @@ export const ImageGallery = ({ imageQuery }) => {
     </div>
   );
 };
+
+export default ImageGallery;

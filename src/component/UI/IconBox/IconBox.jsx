@@ -10,3 +10,5 @@ export const IconBox = () => {
     </div>
   );
 };
+
+export default IconBox;
