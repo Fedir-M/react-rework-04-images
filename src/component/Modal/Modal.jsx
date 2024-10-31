@@ -42,3 +42,5 @@ export const Modal = ({ largeImage, onCloseModal }) => {
     modalRoot
   );
 };
+
+export default Modal;

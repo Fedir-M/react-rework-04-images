@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import { useState } from "react";
 import Button from "../UI/Button/Button.jsx";
 import s from "./Searchbar.module.css";

@@ -14,3 +14,5 @@ export const Button = (onClick, label, type, className, icon) => {
     </button>
   );
 };
+
+export default Button;

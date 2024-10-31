@@ -26,3 +26,5 @@ export const NotFound = ({ query }) => {
     </div>
   );
 };
+
+export default NotFound;
