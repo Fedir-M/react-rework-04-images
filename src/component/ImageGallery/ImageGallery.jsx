@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ImageGalleryItem from "./../ImageGalleryItem/ImageGalleryItem";
 import Button from "./../UI/Button/Button";
 import Modal from "./../Modal/Modal";
@@ -9,7 +9,7 @@ import { fetchImages } from "../../services/imagesApi";
 import s from "./ImageGallery.module.css";
 import NotFound from "../Not found/NotFound";
 
-export const ImageGallery = ({ imageQuery }) => {
+const ImageGallery = ({ imageQuery }) => {
   const [images, setImages] = useState([]);
   const [page, setPage] = useState(1);
   const [largeImage, setLargeImage] = useState("");
@@ -18,35 +18,17 @@ export const ImageGallery = ({ imageQuery }) => {
   const [error, setError] = useState("");
   const itemRef = useRef(null);
 
-  useEffect(() => {
-    if (imageQuery) {
-      setImages([]);
-      setPage(1);
-      getImages(imageQuery);
-    }
-  }, [imageQuery, getImages]);
+  // useEffect(() => {
+  //   setImages([]);
+  //   setPage(1);
+  // }, [imageQuery]);
 
   useEffect(() => {
-    if (page > 1) {
-      getImages(imageQuery);
-    }
-  }, [page, imageQuery, getImages]);
-
-  useEffect(() => {
-    if (images.length > 12) {
-      itemRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    }
-  }, [images]);
-
-  const getImages = useCallback(
-    (query) => {
+    if (imageQuery !== "") {
       setIsLoading(true);
       setError("");
 
-      fetchImages(query, page)
+      fetchImages(imageQuery, page)
         .then((images) => {
           if (images.length === 0) {
             setError("No images found");
@@ -60,9 +42,15 @@ export const ImageGallery = ({ imageQuery }) => {
         .finally(() => {
           setIsLoading(false);
         });
-    },
-    [page]
-  );
+    }
+  }, [imageQuery, page]);
+
+  useEffect(() => {
+    itemRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }, [images]);
 
   const onLoadMore = () => {
     setPage((prev) => prev + 1);
@@ -80,6 +68,10 @@ export const ImageGallery = ({ imageQuery }) => {
     setIsOpenModal(false);
     setLargeImage("");
   };
+
+  if (!imageQuery) {
+    return null;
+  }
 
   return (
     <div className={s.container}>

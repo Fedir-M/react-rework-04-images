@@ -2,11 +2,17 @@
 import IconBox from "../IconBox/IconBox";
 import s from "./Button.module.css";
 
-export const Button = (onClick, label, type, className, icon) => {
+const Button = ({
+  onClick,
+  label,
+  type = "button",
+  className = "",
+  icon = null,
+}) => {
   return (
     <button
       className={`${s.button} ${className}`}
-      type={type || "button"}
+      type={type}
       onClick={onClick}
     >
       {icon && <IconBox id={icon} />}

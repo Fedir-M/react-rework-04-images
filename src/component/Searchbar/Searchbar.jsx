@@ -2,24 +2,23 @@ import { useState } from "react";
 import Button from "../UI/Button/Button.jsx";
 import s from "./Searchbar.module.css";
 
-export const Searchbar = (changeQuery, buttonType) => {
+// eslint-disable-next-line react/prop-types
+const Searchbar = ({ changeQuery, buttonType }) => {
   const [inputQuery, setInputQuery] = useState("");
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const query = inputQuery.trim();
 
-    if (query === "") {
-      setInputQuery("");
+    if (inputQuery === "") {
       return;
     }
 
-    changeQuery(query);
+    changeQuery(inputQuery);
     setInputQuery("");
   };
 
   const handleInputChange = (e) => {
-    setInputQuery(e.target.value);
+    setInputQuery(e.target.value.trim());
   };
 
   return (
@@ -31,12 +30,7 @@ export const Searchbar = (changeQuery, buttonType) => {
           value={inputQuery}
           onChange={handleInputChange}
         />
-        <Button
-          className={s.buttonSearch}
-          onClick={handleSubmit}
-          label="Search"
-          type={buttonType}
-        />
+        <Button className={s.buttonSearch} label="Search" type={buttonType} />
       </form>
     </header>
   );
